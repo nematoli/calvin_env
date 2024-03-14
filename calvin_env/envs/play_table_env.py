@@ -154,9 +154,9 @@ class PlayTableSimEnv(gym.Env):
             if "rgb_static" in rgb_obs:
                 img = rgb_obs["rgb_static"][:, :, ::-1]
                 cv2.imshow("simulation cam", cv2.resize(img, (500, 500)))
-            if "rgb_gripper" in rgb_obs:
-                img2 = rgb_obs["rgb_gripper"][:, :, ::-1]
-                cv2.imshow("gripper cam", cv2.resize(img2, (500, 500)))
+            # if "rgb_gripper" in rgb_obs:
+            #     img2 = rgb_obs["rgb_gripper"][:, :, ::-1]
+            #     cv2.imshow("gripper cam", cv2.resize(img2, (500, 500)))
             cv2.waitKey(1)
         elif mode == "rgb_array":
             assert "rgb_static" in rgb_obs, "Environment does not have static camera"
@@ -292,8 +292,7 @@ def run_env(cfg):
 
     env.reset()
     while True:
-        action = {"action": np.array((0., 0, 0, 0, 0, 0, 1)),
-                  "type": "cartesian_rel"}
+        action = {"action": np.array((0.0, 0, 0, 0, 0, 0, 1)), "type": "cartesian_rel"}
         # cartesian actions can also be input directly as numpy arrays
         # action = np.array((0., 0, 0, 0, 0, 0, 1))
 
