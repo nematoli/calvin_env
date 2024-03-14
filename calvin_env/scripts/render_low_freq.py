@@ -40,6 +40,7 @@ for subdir in ["training", "validation"]:
 
     new_ep_lens = []
     new_ep_start_end_ids = []
+    episode_mapping = {}
 
     for start, end in tqdm(ep_start_end_ids):
 
@@ -47,16 +48,17 @@ for subdir in ["training", "validation"]:
         for offset in (0, 1):
             new_start = new_i
             for old_i in range(start + offset, end + 1, 2):
-                old_data = np.load(src_path / subdir / f"episode_{old_i:06d}.npz")
+                old_data = np.load(src_path / subdir / f"episode_{old_i:07d}.npz")
                 data = dict(old_data)
                 if old_i < end:
-                    next_old_data = np.load(src_path / subdir / f"episode_{old_i + 1:06d}.npz")
+                    next_old_data = np.load(src_path / subdir / f"episode_{old_i + 1:07d}.npz")
                     next_data = dict(next_old_data)
                     data["actions"] = next_data["actions"]
                     data["rel_actions"] = utils.to_relative_action(
                         data["actions"], data["robot_obs"], max_pos=args.max_rel_pos, max_orn=args.max_rel_orn
                     )
-                np.savez(dest_path / subdir / f"episode_{new_i:06d}.npz", **data)
+                episode_mapping[f"episode_{old_i:07d}"] = f"episode_{new_i:07d}"
+                np.savez(dest_path / subdir / f"episode_{new_i:07d}.npz", **data)
                 new_i += 1
             new_end = new_i - 1
             new_ep_len = new_end - new_start + 1
@@ -64,6 +66,8 @@ for subdir in ["training", "validation"]:
             new_ep_lens.append(new_ep_len)
     np.save(dest_path / subdir / "ep_lens.npy", new_ep_lens)
     np.save(dest_path / subdir / "ep_start_end_ids.npy", new_ep_start_end_ids)
+    episode_mapping_array = np.array(list(episode_mapping.items()), dtype=object)
+    np.save(dest_path / subdir / "ep_mapping.npy", episode_mapping_array)
     shutil.copy(src_path / subdir / "statistics.yaml", dest_path / subdir)
     os.makedirs(dest_path / subdir / ".hydra")
     shutil.copytree(src_path / subdir / ".hydra", dest_path / subdir / ".hydra", dirs_exist_ok=True)
